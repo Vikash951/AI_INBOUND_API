@@ -1,15 +1,9 @@
-require('dotenv').config();
-const express = require('express');
 const axios = require('axios');
-
-const app = express();
-app.use(express.json());
 
 let accessToken = null;
 let tokenTimestamp = null;
-const TOKEN_VALIDITY_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+const TOKEN_VALIDITY_MS = 60 * 60 * 1000; // 1 hour
 
-// Function to refresh access token if expired
 async function getAccessToken() {
   const now = Date.now();
 
@@ -33,8 +27,11 @@ async function getAccessToken() {
   return accessToken;
 }
 
-// API endpoint
-app.post('/find-lead', async (req, res) => {
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const phone = req.body.phone;
 
   if (!phone) {
@@ -69,9 +66,4 @@ app.post('/find-lead', async (req, res) => {
     console.error('❌ Zoho API error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Error fetching lead from Zoho CRM' });
   }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+}
